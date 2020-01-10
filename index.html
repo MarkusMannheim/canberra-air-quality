@@ -3,201 +3,140 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Canberra rents</title>
-    <meta name="description" content="Rental changes in Canberra areas (statistical area level 2).">
-    <meta name="keywords" content="canberra, act, rental, rental, prices, tenants, landlords, rents">
+    <title>Canberra's air quality</title>
+    <meta name="description" content="Real-time visualisation of the ACT's pollution levels (PM 2.5 particles).">
+    <meta name="keywords" content="canberra, act, air, quality, aqi, pollution, pm25, smoke, bushfires">
     <meta name="author" content="Markus Mannheim">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Initial scripts -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
-    <script src="https://d3js.org/topojson.v3.min.js"></script>
     <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.js"></script>
-    <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.css" rel="stylesheet">
     <link href="./resources/style.css" rel="stylesheet">
+    <link href="./resources/abcLogo64.png" rel="icon">
+    <!-- Page data for scrapers -->
+    <meta property="og:title" content="Canberra's air quality">
+    <meta property="og:description" content="Real-time visualisation of the ACT's pollution levels (PM 2.5 particles).">
+    <meta property="og:image" content="https://markusmannheim.github.io/canberra-air-quality/resources/bushfireMap.jpg">
+    <meta property="og:url" content="https://markusmannheim.github.io/canberra-air-quality/">
+    <meta property="og:type" content="website">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:site" content="@MarkusMannheim">
+    <meta property="twitter:creator" content="@MarkusMannheim">
   </head>
   <body>
     <!-- Initial page layout -->
-    <div id="base">
-      <div id="map"></div>
-      <div id="narrative">
-        <h1></h1>
-      </div>
+    <svg id="chart">
+      <g id="chartGroup"></g>
+      <g id="axisGroup">
+        <g id="xAxisGroup"></g>
+        <g id="yAxisGroup"></g>
+      </g>
+    </svg>
+    <div id="description"></div>
+    <div id="selector">
+      <div class="option" value="28">MONTH</div>
+      <div class="option" value="7">WEEK</div>
+      <div class="option selected" value="1">DAY</div>
+    </div>
+    <div id="siteSelector">
+      <div class="option" value="Florey">NORTH</div>
+      <div class="option" value="Civic">CENTRAL</div>
+      <div class="option selected" value="Monash">SOUTH</div>
     </div>
     <script>
       // load data
-      d3.json("./resources/actRents.topojson", function(error, data) {
+      d3.json("https://www.data.act.gov.au/resource/94a5-zqnn.json?$query=SELECT name,datetime,aqi_pm2_5 ORDER BY datetime DESC LIMIT 2016", function(error, data) {
         if (error) throw error;
-        rentData = topojson.feature(data, data.objects.tracts);
-        unitData = rentData.features
-          .filter(function(area) {
-            return area.properties.units;
+        airData = data
+          .filter(function(d) {
+            return d.datetime && d.aqi_pm2_5;
+          })
+          .map(function(d) {
+            d.datetime = new Date(d.datetime);
+            d.aqi_pm2_5 = +d.aqi_pm2_5;
+            return d;
           });
-        houseData = rentData.features
-          .filter(function(area) {
-            return area.properties.houses;
-          });
-        // set up MapBox engine
-        mapboxgl.accessToken = "pk.eyJ1IjoibmV3cy1vbjFpbmUiLCJhIjoiR3FlZFZlVSJ9._30EFE9XYhQitqf4gzRG-g";
-        map = new mapboxgl.Map({
-          container: "map",
-          style: 'mapbox://styles/mapbox/light-v10',
-          center: [149.126944, -35.293056],
-          attributionControl: false,
-          zoom: 3,
-          interactive: false
-        });
-        // add navigation and custom attribution
-        map.addControl(new mapboxgl.AttributionControl({
-            compact: true
-          }));
-        map.on("load", function() {
-          let attribution = d3.select(".mapboxgl-ctrl-attrib-inner");
-          attribution.html("&copy; CoreLogic | " + attribution.html());
-        });
-        // svg layer
-        container = map.getCanvasContainer();
-        svg = d3.select(container)
-          .append("svg")
-            .attr("id", "svg");
-        svgGroup = svg
-          .append("g")
-            .attr("id", "svgGroup");
-        narrative = d3.select("#narrative");
-        // legend
-        colours = d3.scaleSequential(d3.interpolateRdYlGn);
-        legendGroup = svg
-          .append("g")
-            .attr("id", "legendGroup");
-        legendGradient = legendGroup
-          .append("defs")
-            .append("linearGradient")
-              .attr("id", "legendGradient")
-              .attr("x1", "0%")
-              .attr("x2", "100%")
-              .attr("y1", "0%")
-              .attr("y1", "0%");
-        legendGradient.selectAll("stop")
-          .data(d3.range(0, 1.1, .1))
-          .enter().append("stop")
-            .attr("offset", function(d) { return (d * 100) + "%"; })
-            .attr("style", function(d) { return "stop-opacity: 1; stop-color: " + d3.interpolateRdYlGn(1 - d); });
-        legendGroup.append("rect")
-          .attr("y", document.body.getBoundingClientRect().height - 50)
-          .attr("width", document.body.getBoundingClientRect().width - 30);
-        x = d3.scaleLinear()
-          .range([15, document.body.getBoundingClientRect().width - 15]);
+        // page elements
+        margin = { top: 40, right: 15, bottom: 60, left: 40 };
+        sites = [
+          ["Monash", "south Canberra"],
+          ["Florey", "north Canberra"],
+          ["Civic", "central Canberra"]
+        ];
+        base = d3.select("#base");
+        chart = d3.select("#chart");
+        chartGroup = d3.select("#chartGroup");
+        xAxisGroup = d3.select("#xAxisGroup");
+        yAxisGroup = d3.select("#yAxisGroup")
+          .attr("transform", "translate(" + margin.left + ", 0)");
+        options = d3.selectAll(".option")
+          .on("click", changeSelector);
+        selection = 1;
+        lastDate = data[0].datetime;
+        // set up scales, axes
+        x = d3.scaleTime();
         xAxis = d3.axisBottom(x)
-          .ticks(5, "$.0f")
-          .tickSizeOuter(0);
-        xAxisGroup = legendGroup
-          .append("g")
-            .attr("id", "xAxisGroup")
-            .attr("transform", "translate(0, " + (document.body.getBoundingClientRect().height - 30) + ")");
-        // map calculations
-        projection = calcProjection();
-        path = d3.geoPath();
-        line = d3.line();
-        // draw fire
-        areas = svgGroup
-          .selectAll(".area")
-            .data(rentData.features)
+          .tickSizeOuter(0)
+          .ticks(5);
+        y = d3.scaleLinear();
+        yAxis = d3.axisLeft(y)
+          .tickSizeOuter(0)
+          .ticks(5);
+        line = d3.line()
+          .x(function(d) { return x(d.datetime);})
+          .y(function(d) { return y(d.aqi_pm2_5); })
+          .curve(d3.curveCardinalOpen);
+        sites = chartGroup
+          .selectAll(".site")
+            .data(sites, function(d) { return d[1]; })
           .enter().append("path")
-            .classed("area", true);
+            .attr("id", function(d) { return d[0]; })
+            .classed("site", true);
+        // window resize event
+        window.addEventListener("resize", resize);
+        resize();
         // initial fade-in and zoom
         d3.select("body").transition()
           .duration(2000)
           .style("opacity", 1);
-        d3.timeout(function() {
-          map.fitBounds(d3.geoBounds(rentData), {
-            padding: { top: 15, bottom: 65, left: 15, right: 15 }
-          });
-        }, 1000);
-        // re-render SVGs upon movement
-        map.on("viewreset", render)
-          .on("move", render)
-          .on("move", render);
-        render();
-        // begin narrative;
-        begin();
       });
-      // re-renders SVG when map moves
-      function render() {
-        projection = calcProjection();
-        path.projection(projection);
-        areas.attr("d", path);
+      // re-plot when window resizes
+      function resize() {
+        let dimensions = document.getElementById("chart").getBoundingClientRect();
+        chartWidth = dimensions.width;
+        chartHeight = dimensions.height;
+        xAxisGroup.attr("transform", "translate(0, " + (chartHeight - margin.bottom) + ")");
+        x.range([margin.left, chartWidth - margin.right]);
+        y.range([chartHeight - margin.bottom, margin.top]);
+        recalculate();
       }
-      // recalculates D3 map projection when map moves
-      function calcProjection() {
-        bbox = document.body.getBoundingClientRect();
-        center = map.getCenter();
-        zoom = map.getZoom();
-        scale = 256 / Math.PI * Math.pow(2, zoom);
-        return d3.geoMercator()
-          .center([center.lng, center.lat])
-          .translate([bbox.width / 2, bbox.height / 2])
-          .scale(scale);
+      // click/touch selector
+      function changeSelector() {
+        options.classed("selected", false);
+        selection = +d3.select(this).attr("value");
+        d3.select(this).classed("selected", true);
+        recalculate();
       }
-      function begin() {
-        setColours("units", "yr10");
-        d3.timeout(function() {
-          message("unit rents <span>10 years</span> ago");
-        }, 4000);
-        d3.timeout(function() {
-          draw("units", "yr10");
-        }, 8500);
-        d3.timeout(function() {
-          message("unit rents <span>5 years</span> ago");
-        }, 12000);
-        d3.timeout(function() {
-          draw("units", "yr5");
-        }, 15500);
-        d3.timeout(function() {
-          message("unit rents <span>1 year</span> ago");
-        }, 19000);
-        d3.timeout(function() {
-          draw("units", "yr1");
-        }, 22500);
+      // calculate scales & axes
+      function recalculate() {
+        firstDate = new Date(new Date(lastDate).setDate(lastDate.getDate() - selection));
+        activeData = airData
+          .filter(function(d) { return d.datetime >= firstDate; });
+        x.domain(d3.extent(activeData, function(d) { return d.datetime; }));
+        y.domain([0, d3.max(activeData, function(d) { return d.aqi_pm2_5; })]);
+        draw();
       }
-      function message(text) {
-        narrative.select("h1")
-          .html(text);
-        narrative.style("margin-left", -(parseFloat(narrative.style("width")) / 2) + "px");
-        narrative.transition()
-          .duration(1000)
-          .style("opacity", 1)
-        .transition()
-          .delay(2500)
-          .duration(1000)
-          .style("opacity", 0);
-      }
-      function setColours(type, time) {
-        let min = type == "units" ?
-          d3.min(unitData, function(d) { return d.properties[type].q2 / Math.pow(1 + d.properties[type][time], +(time.slice(2))); }) :
-          d3.min(houseData, function(d) { return d.properties[type].q2 / Math.pow(1 + d.properties[type][time], +(time.slice(2))); });
-        let max = type == "units" ?
-          d3.max(unitData, function(d) { return d.properties[type].q2; }) :
-          d3.max(houseData, function(d) { return d.properties[type].q2; });
-        colours.domain([max, min]).nice();
-        x.domain(colours.domain());
-      }
-      function draw(type, time) {
+      // draw axes & pollution lines
+      function draw() {
         xAxisGroup.transition()
           .duration(2000)
           .call(xAxis);
-        legendGroup.transition()
+        yAxisGroup.transition()
           .duration(2000)
-          .style("opacity", 1);
-        areas.filter(function(area) { return area.properties[type]; })
-          .transition()
+          .call(yAxis);
+        sites.transition()
           .duration(2000)
-          .style("opacity", 1)
-          .style("fill", function(d) { return colours(d.properties[type].q2 / Math.pow(1 + d.properties[type][time], +(time.slice(2)))); });
-        areas.filter(function(area) { return !area.properties[type]; })
-          .transition()
-            .duration(2000)
-            .style("opacity", 0)
-            .style("fill", "none");
+          .attr("d", function(d) { return line(activeData.filter(function(e) { return d[0] == e.name; })); });
       }
     </script>
   </body>
