@@ -74,6 +74,10 @@ body {
   fill: #1C1C1C;
   font-size: .7rem;
 }
+#axisGroup line, #axisGroup .domain  {
+  stroke: #1C1C1C;
+  opacity: .75;
+}
 .site {
   fill: none;
   stroke-width: 3;
@@ -99,12 +103,24 @@ body {
 #siteSelector .option[value=Civic] {
   background-color: #01CFFF;
 }
+#hazardLine {
+  opacity: .75;
+}
+#hazardLine line {
+  stroke: #1C1C1C;
+  stroke-dasharray: 4 3;
+}
+#hazardLine text {
+  fill: #1C1C1C;
+  text-anchor: end;
+  font-size: .8rem;
+}
 /* desktop-only styling */
 @media only screen and (min-width: 500px) {
   body {
     background-color: #f9f9f9;
   }
   #selector .option:hover {
-    background-color: #FF6100;
+/*     background-color: #FF6100; */
   }
 }

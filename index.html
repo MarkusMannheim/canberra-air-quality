@@ -26,7 +26,12 @@
   <body>
     <!-- Initial page layout -->
     <svg id="chart">
-      <g id="chartGroup"></g>
+      <g id="chartGroup">
+        <g id="hazardLine">
+          <line y1="0" y2="0"></line>
+          <text y="-5">hazardous levels</text>
+        </g>
+      </g>
       <g id="axisGroup">
         <g id="xAxisGroup"></g>
         <g id="yAxisGroup"></g>
@@ -86,6 +91,9 @@
           .x(function(d) { return x(d.datetime);})
           .y(function(d) { return y(d.aqi_pm2_5); })
           .curve(d3.curveCardinalOpen);
+        hazardLine = d3.select("#hazardLine");
+        hazardLine.select("line")
+          .attr("x1", margin.left);
         sites = chartGroup
           .selectAll(".site")
             .data(sites, function(d) { return d[1]; })
@@ -108,6 +116,10 @@
         xAxisGroup.attr("transform", "translate(0, " + (chartHeight - margin.bottom) + ")");
         x.range([margin.left, chartWidth - margin.right]);
         y.range([chartHeight - margin.bottom, margin.top]);
+        hazardLine.select("line")
+          .attr("x2", chartWidth - margin.right);
+        hazardLine.select("text")
+          .attr("x", chartWidth - margin.right);
         recalculate();
       }
       // click/touch selector
@@ -137,6 +149,9 @@
         sites.transition()
           .duration(2000)
           .attr("d", function(d) { return line(activeData.filter(function(e) { return d[0] == e.name; })); });
+        hazardLine.transition()
+          .duration(2000)
+          .attr("transform", "translate(0, " + y(200) + ")");
       }
     </script>
   </body>
