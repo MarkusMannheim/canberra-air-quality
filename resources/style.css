@@ -144,7 +144,7 @@ h1, p {
   text-align: center;
   padding: 5px;
   border-radius: 10px;
-  background-color: rgba(255, 255, 255, .75);
+  background-color: rgba(255, 255, 255, .5);
   pointer-events: none;
 }
 #tip h1 {
@@ -160,7 +160,35 @@ h1, p {
 #tip.Civic {
   color: #007D99;
 }
-
+#info {
+  position: fixed;
+  bottom: 0px;
+  color: #1C1C1C;
+  font-size: 1.2rem;
+  display: none;
+}
+#info.selected {
+  display: block;
+}
+#infoPanel {
+  position: fixed;
+  margin: 10px;
+  padding: 5px;
+  border-radius: 5px;
+  box-shadow: 2px 2px 5px #1C1C1C;
+  background-color: #1C1C1C;
+  bottom: 0;
+  color: white;
+  display: none;
+  max-width: 100%;
+}
+#infoPanel.selected {
+  display: block;
+}
+#infoPanel a {
+  text-decoration: none;
+  color: #01CFFF;
+}
 /* desktop-only styling */
 @media only screen and (min-width: 500px) {
   body {
@@ -168,5 +196,15 @@ h1, p {
   }
   .reading {
     stroke: white;
+  }
+  #info:hover::after {
+    font-size: .8rem;
+    content: " click for details";
+  }
+  #infoPanel a:hover {
+    color: #FF6100;
+  }
+  #infoPanel {
+    max-width: 50%;
   }
 }
