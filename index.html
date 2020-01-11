@@ -60,15 +60,15 @@
     </div>
     <script>
       // load data
-      d3.json("https://www.data.act.gov.au/resource/94a5-zqnn.json?$query=SELECT name,datetime,aqi_pm2_5 ORDER BY datetime DESC LIMIT 2016", function(error, data) {
+      d3.json("https://www.data.act.gov.au/resource/ufvu-jybu.json?$query=SELECT station,datetime,pm2_5_1_hr ORDER BY datetime DESC LIMIT 2016", function(error, data) {
         if (error) throw error;
         airData = data
           .filter(function(d) {
-            return d.datetime && d.aqi_pm2_5;
+            return d.datetime && d.pm2_5_1_hr;
           })
           .map(function(d) {
             d.datetime = new Date(d.datetime);
-            d.aqi_pm2_5 = +d.aqi_pm2_5;
+            d.pm2_5_1_hr = +d.pm2_5_1_hr;
             return d;
           });
         // page elements
@@ -111,7 +111,7 @@
         // set up pollution lines
         line = d3.line()
           .x(function(d) { return x(d.datetime); })
-          .y(function(d) { return y(d.aqi_pm2_5); })
+          .y(function(d) { return y(d.pm2_5_1_hr); })
           .curve(d3.curveCardinal);
         hazardLine = d3.select("#hazardLine");
         hazardLine.select("line")
@@ -126,7 +126,7 @@
         // set up voronoi cells
         voronoi = d3.voronoi()
           .x(function(d) { return x(d.datetime); })
-          .y(function(d) { return y(d.aqi_pm2_5); });
+          .y(function(d) { return y(d.pm2_5_1_hr); });
         // window resize event
         window.addEventListener("resize", resize);
         resize();
@@ -165,10 +165,10 @@
         firstDate = new Date(new Date(lastDate).setDate(lastDate.getDate() - selectedPeriod));
         activeData = airData
           .filter(function(d) {
-            return d.name == selectedSite || selectedSite == "all";
+            return d.station == selectedSite || selectedSite == "all";
           });
         x.domain(d3.extent(activeData.filter(function(d) { return d.datetime >= firstDate; }), function(d) { return d.datetime; }));
-        y.domain([0, d3.max(activeData.filter(function(d) { return d.datetime >= firstDate; }), function(d) { return d.aqi_pm2_5; })]);
+        y.domain([0, d3.max(activeData.filter(function(d) { return d.datetime >= firstDate; }), function(d) { return d.pm2_5_1_hr; })]);
         draw();
       }
       // draw axes & pollution lines
@@ -181,7 +181,7 @@
           .call(yAxis);
         sites.transition()
           .duration(1500)
-          .attr("d", function(d) { return line(airData.filter(function(e) { return d[0] == e.name; })); });
+          .attr("d", function(d) { return line(airData.filter(function(e) { return d[0] == e.station; })); });
         hazardLine.transition()
           .duration(1500)
           .attr("transform", "translate(0, " + y(200) + ")");
@@ -197,15 +197,15 @@
           .attr("d", function(d) { return !d ? null : d3.line()(d) + "Z"; });
         entering.append("circle")
           .attr("cx", function(d) { return !d ? null : x(d.data.datetime); })
-          .attr("cy", function(d) { return !d ? null : y(d.data.aqi_pm2_5); })
-          .attr("class", function(d) { return !d ? null : d.data.name; });
+          .attr("cy", function(d) { return !d ? null : y(d.data.pm2_5_1_hr); })
+          .attr("class", function(d) { return !d ? null : d.data.station; });
         cells.exit()
           .remove();
         cells.select("path")
           .attr("d", function(d) { return !d ? null : d3.line()(d) + "Z"; });
         cells.select("circle")
           .attr("cx", function(d) { return !d ? null : x(d.data.datetime); })
-          .attr("cy", function(d) { return !d ? null : y(d.data.aqi_pm2_5); });
+          .attr("cy", function(d) { return !d ? null : y(d.data.pm2_5_1_hr); });
         d3.selectAll(".cell")
           .style("pointer-events", "none")
           .transition()
@@ -224,17 +224,17 @@
           .select("circle")
           .classed("selected", true);
         tip.style("opacity", 0)
-          .attr("class", d.data.name)
+          .attr("class", d.data.station)
           .style("top", "0px")
           .style("left", "0px")
-          .html("<h1>" + d.data.aqi_pm2_5 + "</h1>"
-              + "<p>" + d.data.name + ", " + d3.timeFormat("%-I%p, %b %-d")(d.data.datetime) + "</p>");
+          .html("<h1>" + d.data.pm2_5_1_hr + "</h1>"
+              + "<p>" + d.data.station + ", " + d3.timeFormat("%-I%p, %b %-d")(d.data.datetime) + "</p>");
         let tipWidth = parseFloat(tip.style("width"));
         let tipHeight = parseFloat(tip.style("height"));
         tip.style("top", function() {
-            return y(d.data.aqi_pm2_5) + 10 + tipHeight < chartHeight - margin.bottom ?
-              (y(d.data.aqi_pm2_5) + 10) + "px" :
-              (y(d.data.aqi_pm2_5) - 10 - tipHeight) + "px";
+            return y(d.data.pm2_5_1_hr) + 10 + tipHeight < chartHeight - margin.bottom ?
+              (y(d.data.pm2_5_1_hr) + 10) + "px" :
+              (y(d.data.pm2_5_1_hr) - 10 - tipHeight) + "px";
           })
           .style("left", function() {
             return x(d.data.datetime) + 10 + tipWidth < chartWidth - margin.right ?
