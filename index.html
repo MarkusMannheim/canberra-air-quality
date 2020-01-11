@@ -62,12 +62,13 @@
       // load data
       d3.json("https://www.data.act.gov.au/resource/ufvu-jybu.json?$query=SELECT station,datetime,pm2_5_1_hr ORDER BY datetime DESC LIMIT 2016", function(error, data) {
         if (error) throw error;
+        backupData = data;
         airData = data
           .filter(function(d) {
             return d.datetime && d.pm2_5_1_hr;
           })
           .map(function(d) {
-            d.datetime = new Date(d.datetime);
+            d.datetime = d3.timeParse("%Y-%m-%dT%H:%M:%S.%L")(d.datetime);
             d.pm2_5_1_hr = +d.pm2_5_1_hr;
             return d;
           });
@@ -112,7 +113,7 @@
         line = d3.line()
           .x(function(d) { return x(d.datetime); })
           .y(function(d) { return y(d.pm2_5_1_hr); })
-          .curve(d3.curveBasis);
+          .curve(d3.curveCardinal);
         hazardLine = d3.select("#hazardLine");
         hazardLine.select("line")
           .attr("x1", margin.left);
@@ -168,7 +169,7 @@
             return d.station == selectedSite || selectedSite == "all";
           });
         x.domain(d3.extent(activeData.filter(function(d) { return d.datetime >= firstDate; }), function(d) { return d.datetime; }));
-        y.domain([0, d3.max(activeData.filter(function(d) { return d.datetime >= firstDate; }), function(d) { return d.pm2_5_1_hr; })]);
+        y.domain([0, d3.max(activeData.filter(function(d) { return d.datetime >= firstDate; }), function(d) { return d.pm2_5_1_hr; })]).nice();
         draw();
       }
       // draw axes & pollution lines
