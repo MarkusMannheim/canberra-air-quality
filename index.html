@@ -11,7 +11,7 @@
     <!-- Initial scripts -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-    <link href="./resources/style.css" rel="stylesheet">
+    <link href="./resources/style.css?v1.1" rel="stylesheet">
     <link href="./resources/abcLogo64.png" rel="icon">
     <!-- Page data for scrapers -->
     <meta property="og:title" content="Canberra's air quality">
@@ -54,6 +54,10 @@
       <div class="option all" value="Monash">SOUTH</div>
     </div>
     <div id="tip"></div>
+    <div id="info" class="selected" onclick="infoSwitch()">&#9432;</div>
+    <div id="infoPanel" onclick="infoSwitch()">
+      <p>This charts hourly air-quality data from the <a href='https://www.data.act.gov.au/Environment/Air-Quality-Monitoring-Data/94a5-zqnn' target='_blank'>ACT Government's three monitoring stations</a>. It measures fine particles (PM2.5) in the air, which are the most harmful to health.</p>
+    </div>
     <script>
       // load data
       d3.json("https://www.data.act.gov.au/resource/94a5-zqnn.json?$query=SELECT name,datetime,aqi_pm2_5 ORDER BY datetime DESC LIMIT 2016", function(error, data) {
@@ -76,6 +80,9 @@
         ];
         base = d3.select("#base");
         chart = d3.select("#chart");
+        info = d3.select("#info");
+        infoPanel = d3.select("#infoPanel");
+        infoToggle = false;
         chartGroup = d3.select("#chartGroup");
         chartClip = d3.select("#chartClip");
         chartClip.select("rect")
@@ -225,14 +232,14 @@
         let tipWidth = parseFloat(tip.style("width"));
         let tipHeight = parseFloat(tip.style("height"));
         tip.style("top", function() {
-            return y(d.data.aqi_pm2_5) + 20 + tipHeight < chartHeight - margin.bottom ?
-              (y(d.data.aqi_pm2_5) + 20) + "px" :
-              (y(d.data.aqi_pm2_5) -20 - tipHeight) + "px";
+            return y(d.data.aqi_pm2_5) + 10 + tipHeight < chartHeight - margin.bottom ?
+              (y(d.data.aqi_pm2_5) + 10) + "px" :
+              (y(d.data.aqi_pm2_5) - 10 - tipHeight) + "px";
           })
           .style("left", function() {
-            return x(d.data.datetime) + 20 + tipWidth < chartWidth - margin.right ?
-              (x(d.data.datetime) + 20) + "px" :
-              (x(d.data.datetime) -20 - tipWidth) + "px";
+            return x(d.data.datetime) + 10 + tipWidth < chartWidth - margin.right ?
+              (x(d.data.datetime) + 10) + "px" :
+              (x(d.data.datetime) - 10 - tipWidth) + "px";
           })
           .style("opacity", 1);
       }
@@ -256,6 +263,12 @@
             .raise();
         }
         recalculate();
+      }
+      // info panel
+      function infoSwitch() {
+        infoToggle = !infoToggle;
+        infoPanel.classed("selected", infoToggle);
+        info.classed("selected", !infoToggle);
       }
     </script>
   </body>
