@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8">
     <title>Canberra's air quality</title>
-    <meta name="description" content="Real-time visualisation of the ACT's pollution levels (PM 2.5 particles).">
+    <meta name="description" content="Real-time visualisation of fine particulate pollution (PM2.5) in the ACT.">
     <meta name="keywords" content="canberra, act, air, quality, aqi, pollution, pm25, smoke, bushfires">
     <meta name="author" content="Markus Mannheim">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,8 +15,8 @@
     <link href="./resources/abcLogo64.png" rel="icon">
     <!-- Page data for scrapers -->
     <meta property="og:title" content="Canberra's air quality">
-    <meta property="og:description" content="Real-time visualisation of the ACT's pollution levels (PM 2.5 particles).">
-    <meta property="og:image" content="https://markusmannheim.github.io/canberra-air-quality/resources/bushfireMap.jpg">
+    <meta property="og:description" content="Real-time visualisation of fine particulate pollution (PM2.5) in the ACT.">
+    <meta property="og:image" content="https://markusmannheim.github.io/canberra-air-quality/resources/canberraSmoke.jpg">
     <meta property="og:url" content="https://markusmannheim.github.io/canberra-air-quality/">
     <meta property="og:type" content="website">
     <meta property="twitter:card" content="summary_large_image">
@@ -26,6 +26,11 @@
   <body>
     <!-- Initial page layout -->
     <svg id="chart">
+      <defs>
+        <clipPath id="chartClip">
+          <rect></rect>
+        </clipPath>
+      </defs>
       <g id="chartGroup">
         <g id="hazardLine">
           <line y1="0" y2="0"></line>
@@ -44,10 +49,11 @@
       <div class="option selected" value="1">DAY</div>
     </div>
     <div id="siteSelector">
-      <div class="option" value="Florey">NORTH</div>
-      <div class="option" value="Civic">CENTRAL</div>
-      <div class="option selected" value="Monash">SOUTH</div>
+      <div class="option all" value="Florey">NORTH</div>
+      <div class="option all" value="Civic">CENTRAL</div>
+      <div class="option all" value="Monash">SOUTH</div>
     </div>
+    <div id="tip"></div>
     <script>
       // load data
       d3.json("https://www.data.act.gov.au/resource/94a5-zqnn.json?$query=SELECT name,datetime,aqi_pm2_5 ORDER BY datetime DESC LIMIT 2016", function(error, data) {
@@ -62,7 +68,7 @@
             return d;
           });
         // page elements
-        margin = { top: 40, right: 15, bottom: 60, left: 40 };
+        margin = { top: 40, right: 20, bottom: 60, left: 40 };
         sites = [
           ["Monash", "south Canberra"],
           ["Florey", "north Canberra"],
@@ -71,14 +77,22 @@
         base = d3.select("#base");
         chart = d3.select("#chart");
         chartGroup = d3.select("#chartGroup");
+        chartClip = d3.select("#chartClip");
+        chartClip.select("rect")
+          .attr("x", margin.left)
+          .attr("y", margin.top);
+        tip = d3.select("#tip");
         xAxisGroup = d3.select("#xAxisGroup");
         yAxisGroup = d3.select("#yAxisGroup")
           .attr("transform", "translate(" + margin.left + ", 0)");
-        options = d3.selectAll(".option")
+        options = d3.selectAll("#selector .option")
           .on("click", changeSelector);
-        selection = 1;
+        siteOptions = d3.selectAll("#siteSelector .option")
+          .on("click", changeSite);
+        selectedPeriod = 1;
+        selectedSite = "all";
         lastDate = data[0].datetime;
-        // set up scales, axes
+        // set up scales, axes, voronoi
         x = d3.scaleTime();
         xAxis = d3.axisBottom(x)
           .tickSizeOuter(0)
@@ -87,10 +101,11 @@
         yAxis = d3.axisLeft(y)
           .tickSizeOuter(0)
           .ticks(5);
+        // set up pollution lines
         line = d3.line()
-          .x(function(d) { return x(d.datetime);})
+          .x(function(d) { return x(d.datetime); })
           .y(function(d) { return y(d.aqi_pm2_5); })
-          .curve(d3.curveCardinalOpen);
+          .curve(d3.curveCardinal);
         hazardLine = d3.select("#hazardLine");
         hazardLine.select("line")
           .attr("x1", margin.left);
@@ -99,13 +114,18 @@
             .data(sites, function(d) { return d[1]; })
           .enter().append("path")
             .attr("id", function(d) { return d[0]; })
-            .classed("site", true);
+            .classed("site", true)
+            .classed("selected", true);
+        // set up voronoi cells
+        voronoi = d3.voronoi()
+          .x(function(d) { return x(d.datetime); })
+          .y(function(d) { return y(d.aqi_pm2_5); });
         // window resize event
         window.addEventListener("resize", resize);
         resize();
         // initial fade-in and zoom
         d3.select("body").transition()
-          .duration(2000)
+          .duration(1500)
           .style("opacity", 1);
       });
       // re-plot when window resizes
@@ -120,38 +140,122 @@
           .attr("x2", chartWidth - margin.right);
         hazardLine.select("text")
           .attr("x", chartWidth - margin.right);
+        chartClip.select("rect")
+          .attr("width", chartWidth - margin.left - margin.right)
+          .attr("height", chartHeight - margin.top - margin.bottom);
+        voronoi.size([chartWidth, chartHeight]);
         recalculate();
       }
       // click/touch selector
       function changeSelector() {
         options.classed("selected", false);
-        selection = +d3.select(this).attr("value");
+        selectedPeriod = +d3.select(this).attr("value");
         d3.select(this).classed("selected", true);
         recalculate();
       }
       // calculate scales & axes
       function recalculate() {
-        firstDate = new Date(new Date(lastDate).setDate(lastDate.getDate() - selection));
+        firstDate = new Date(new Date(lastDate).setDate(lastDate.getDate() - selectedPeriod));
         activeData = airData
-          .filter(function(d) { return d.datetime >= firstDate; });
-        x.domain(d3.extent(activeData, function(d) { return d.datetime; }));
-        y.domain([0, d3.max(activeData, function(d) { return d.aqi_pm2_5; })]);
+          .filter(function(d) {
+            return d.name == selectedSite || selectedSite == "all";
+          });
+        x.domain(d3.extent(activeData.filter(function(d) { return d.datetime >= firstDate; }), function(d) { return d.datetime; }));
+        y.domain([0, d3.max(activeData.filter(function(d) { return d.datetime >= firstDate; }), function(d) { return d.aqi_pm2_5; })]);
         draw();
       }
       // draw axes & pollution lines
       function draw() {
         xAxisGroup.transition()
-          .duration(2000)
+          .duration(1500)
           .call(xAxis);
         yAxisGroup.transition()
-          .duration(2000)
+          .duration(1500)
           .call(yAxis);
         sites.transition()
-          .duration(2000)
-          .attr("d", function(d) { return line(activeData.filter(function(e) { return d[0] == e.name; })); });
+          .duration(1500)
+          .attr("d", function(d) { return line(airData.filter(function(e) { return d[0] == e.name; })); });
         hazardLine.transition()
-          .duration(2000)
+          .duration(1500)
           .attr("transform", "translate(0, " + y(200) + ")");
+        cells = chartGroup
+          .selectAll(".cell")
+            .data(voronoi.polygons(activeData.filter(function(d) { return d.datetime >= firstDate; })), function(d) { return d; });
+        entering = cells
+          .enter().append("g")
+            .classed("cell", true)
+            .on("mouseover", reveal)
+            .on("mouseout", hide);
+        entering.append("path")
+          .attr("d", function(d) { return !d ? null : d3.line()(d) + "Z"; });
+        entering.append("circle")
+          .attr("cx", function(d) { return !d ? null : x(d.data.datetime); })
+          .attr("cy", function(d) { return !d ? null : y(d.data.aqi_pm2_5); })
+          .attr("class", function(d) { return !d ? null : d.data.name; });
+        cells.exit()
+          .remove();
+        cells.select("path")
+          .attr("d", function(d) { return !d ? null : d3.line()(d) + "Z"; });
+        cells.select("circle")
+          .attr("cx", function(d) { return !d ? null : x(d.data.datetime); })
+          .attr("cy", function(d) { return !d ? null : y(d.data.aqi_pm2_5); });
+        d3.selectAll(".cell")
+          .style("pointer-events", "none")
+          .transition()
+            .delay(1500)
+            .style("pointer-events", "auto");
+      }
+      // reveal & hide readings
+      function hide(d) {
+        d3.select(this)
+          .select("circle")
+          .classed("selected", false);
+        tip.style("opacity", 0);
+      }
+      function reveal(d) {
+        d3.select(this)
+          .select("circle")
+          .classed("selected", true);
+        tip.style("opacity", 0)
+          .attr("class", d.data.name)
+          .style("top", "0px")
+          .style("left", "0px")
+          .html("<h1>" + d.data.aqi_pm2_5 + "</h1>"
+              + "<p>" + d.data.name + ", " + d3.timeFormat("%-I%p, %b %-d")(d.data.datetime) + "</p>");
+        let tipWidth = parseFloat(tip.style("width"));
+        let tipHeight = parseFloat(tip.style("height"));
+        tip.style("top", function() {
+            return y(d.data.aqi_pm2_5) + 20 + tipHeight < chartHeight - margin.bottom ?
+              (y(d.data.aqi_pm2_5) + 20) + "px" :
+              (y(d.data.aqi_pm2_5) -20 - tipHeight) + "px";
+          })
+          .style("left", function() {
+            return x(d.data.datetime) + 20 + tipWidth < chartWidth - margin.right ?
+              (x(d.data.datetime) + 20) + "px" :
+              (x(d.data.datetime) -20 - tipWidth) + "px";
+          })
+          .style("opacity", 1);
+      }
+      // change site selection
+      function changeSite() {
+        console.log(d3.select(this).attr("value") + " " + selectedSite);
+        if (selectedSite !== "all" && selectedSite == d3.select(this).attr("value")) {
+          selectedSite = "all";
+          siteOptions.classed("selected", false);
+          sites.classed("selected", true);
+          siteOptions.classed("all", true);
+        } else {
+          selectedSite = d3.select(this)
+            .attr("value");
+          siteOptions.classed("all", false);
+          siteOptions.classed("selected", false);
+          sites.classed("selected", false);
+          d3.select(this).classed("selected", true);
+          sites.filter(function(d) { return d[0] == selectedSite; })
+            .classed("selected", true)
+            .raise();
+        }
+        recalculate();
       }
     </script>
   </body>
