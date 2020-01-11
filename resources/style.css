@@ -62,10 +62,7 @@ h1, p {
   text-align: center;
   margin-right: 2px;
 }
-#selector .option:last-child {
-  margin-right: 0px;
-}
-#siteSelector .option:last-child {
+#selector .option:last-child, #siteSelector .option:last-child {
   margin-right: 0px;
 }
 #selector .option.selected {
@@ -86,11 +83,12 @@ h1, p {
   fill: none;
   stroke-width: 2;
   stroke: silver;
-  .opacity: .5;
+  opacity: .5;
   clip-path: url(#chartClip);
 }
 .site.selected {
   stroke-width: 3;
+  opacity: 1;
   stroke-dasharray: none;
 }
 #siteSelector .option {
@@ -164,7 +162,8 @@ h1, p {
   position: fixed;
   bottom: 0px;
   color: #1C1C1C;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
+  padding: 5px 10px 0 0;
   display: none;
 }
 #info.selected {
@@ -198,7 +197,7 @@ h1, p {
     stroke: white;
   }
   #info:hover::after {
-    font-size: .8rem;
+    font-size: 1rem;
     content: " click for details";
   }
   #infoPanel a:hover {

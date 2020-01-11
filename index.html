@@ -11,7 +11,7 @@
     <!-- Initial scripts -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-    <link href="./resources/style.css?v1.1" rel="stylesheet">
+    <link href="./resources/style.css?v1.2" rel="stylesheet">
     <link href="./resources/abcLogo64.png" rel="icon">
     <!-- Page data for scrapers -->
     <meta property="og:title" content="Canberra's air quality">
@@ -86,8 +86,8 @@
         chartGroup = d3.select("#chartGroup");
         chartClip = d3.select("#chartClip");
         chartClip.select("rect")
-          .attr("x", margin.left)
-          .attr("y", margin.top);
+          .attr("x", margin.left - 5)
+          .attr("y", margin.top - 5);
         tip = d3.select("#tip");
         xAxisGroup = d3.select("#xAxisGroup");
         yAxisGroup = d3.select("#yAxisGroup")
@@ -148,8 +148,8 @@
         hazardLine.select("text")
           .attr("x", chartWidth - margin.right);
         chartClip.select("rect")
-          .attr("width", chartWidth - margin.left - margin.right)
-          .attr("height", chartHeight - margin.top - margin.bottom);
+          .attr("width", chartWidth - margin.left - margin.right + 10)
+          .attr("height", chartHeight - margin.top - margin.bottom + 10);
         voronoi.size([chartWidth, chartHeight]);
         recalculate();
       }
