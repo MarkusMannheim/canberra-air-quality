@@ -184,7 +184,7 @@
           .attr("d", function(d) { return line(airData.filter(function(e) { return d[0] == e.station; })); });
         hazardLine.transition()
           .duration(1500)
-          .attr("transform", "translate(0, " + y(200) + ")");
+          .attr("transform", "translate(0, " + y(177.9) + ")");
         cells = chartGroup
           .selectAll(".cell")
             .data(voronoi.polygons(activeData.filter(function(d) { return d.datetime >= firstDate; })), function(d) { return d; });
@@ -227,7 +227,7 @@
           .attr("class", d.data.station)
           .style("top", "0px")
           .style("left", "0px")
-          .html("<h1>" + d.data.pm2_5_1_hr + "</h1>"
+          .html("<h1>" + d3.format(".1f")(d.data.pm2_5_1_hr) + "</h1>"
               + "<p>" + d.data.station + ", " + d3.timeFormat("%-I%p, %b %-d")(d.data.datetime) + "</p>");
         let tipWidth = parseFloat(tip.style("width"));
         let tipHeight = parseFloat(tip.style("height"));
