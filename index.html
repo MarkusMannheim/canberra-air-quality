@@ -86,7 +86,7 @@
         chartGroup = d3.select("#chartGroup");
         chartClip = d3.select("#chartClip");
         chartClip.select("rect")
-          .attr("x", margin.left - 5)
+          .attr("x", margin.left)
           .attr("y", margin.top - 5);
         tip = d3.select("#tip");
         xAxisGroup = d3.select("#xAxisGroup");
@@ -148,8 +148,8 @@
         hazardLine.select("text")
           .attr("x", chartWidth - margin.right);
         chartClip.select("rect")
-          .attr("width", chartWidth - margin.left - margin.right + 10)
-          .attr("height", chartHeight - margin.top - margin.bottom + 10);
+          .attr("width", chartWidth - margin.left - margin.right)
+          .attr("height", chartHeight - margin.top - margin.bottom + 5);
         voronoi.size([chartWidth, chartHeight]);
         recalculate();
       }
