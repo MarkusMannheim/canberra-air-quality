@@ -34,7 +34,7 @@
       <g id="chartGroup">
         <g id="hazardLine">
           <line y1="0" y2="0"></line>
-          <text y="-5">hazardous levels</text>
+          <text y="-5">hazardous</text>
         </g>
       </g>
       <g id="axisGroup">
@@ -112,7 +112,7 @@
         line = d3.line()
           .x(function(d) { return x(d.datetime); })
           .y(function(d) { return y(d.pm2_5_1_hr); })
-          .curve(d3.curveCardinal);
+          .curve(d3.curveBasis);
         hazardLine = d3.select("#hazardLine");
         hazardLine.select("line")
           .attr("x1", margin.left);
