@@ -1,5 +1,4 @@
 # Canberra's air quality
-A real-time visualisation of fine particulate pollution (PM2.5) in the ACT.
 
 This chart shows average hourly air-quality data from the ACT Government's [three monitoring stations](https://www.health.act.gov.au/about-our-health-system/population-health/environmental-monitoring/monitoring-and-regulating-air-7). It measures fine particles (PM2.5) in the air, which are the most harmful to health.
 
