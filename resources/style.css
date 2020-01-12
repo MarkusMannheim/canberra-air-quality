@@ -112,14 +112,14 @@ h1, p {
 #siteSelector .option[value=Civic].selected, #siteSelector .option[value=Civic].all {
   background-color: #01CFFF;
 }
-#hazardLine {
+.hazard {
   opacity: .75;
 }
-#hazardLine line {
+.hazard line {
   stroke: #1C1C1C;
   stroke-dasharray: 4 3;
 }
-#hazardLine text {
+.hazard text {
   fill: #1C1C1C;
   text-anchor: end;
   font-size: .8rem;
