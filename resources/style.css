@@ -128,11 +128,12 @@ h1, p {
 }
 .cell circle {
   pointer-events: none;
-}
-.cell circle.selected {
-  r: 5;
   fill: white;
   stroke-width: 3;
+  display: none;
+}
+.cell circle.selected {
+   display: block;
 }
 #tip {
   position: absolute;

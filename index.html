@@ -11,7 +11,7 @@
     <!-- Initial scripts -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-    <link href="./resources/style.css?v1.6" rel="stylesheet">
+    <link href="./resources/style.css?v1.7" rel="stylesheet">
     <link href="./resources/abcLogo64.png" rel="icon">
     <!-- Page data for scrapers -->
     <meta property="og:title" content="Canberra's air quality">
@@ -220,6 +220,7 @@
         entering.append("path")
           .attr("d", function(d) { return !d ? null : d3.line()(d) + "Z"; });
         entering.append("circle")
+          .attr("r", 5)
           .attr("cx", function(d) { return !d ? null : x(d.data.datetime); })
           .attr("cy", function(d) { return !d ? null : y(d.data.pm2_5_1_hr); })
           .attr("class", function(d) { return !d ? null : d.data.station; });
@@ -227,7 +228,7 @@
           .remove();
         cells.select("path")
           .attr("d", function(d) { return !d ? null : d3.line()(d) + "Z"; });
-        cells.select("circle")
+        cells.select("circle") // draw scatterplot dots for tool tip
           .attr("cx", function(d) { return !d ? null : x(d.data.datetime); })
           .attr("cy", function(d) { return !d ? null : y(d.data.pm2_5_1_hr); });
         // switch off mouse/touch interactions while chart transitions
