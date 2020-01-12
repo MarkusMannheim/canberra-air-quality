@@ -11,7 +11,7 @@
     <!-- Initial scripts -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-    <link href="./resources/style.css?v1.3" rel="stylesheet">
+    <link href="./resources/style.css?v1.4" rel="stylesheet">
     <link href="./resources/abcLogo64.png" rel="icon">
     <!-- Page data for scrapers -->
     <meta property="og:title" content="Canberra's air quality">
@@ -32,18 +32,7 @@
         </clipPath>
       </defs>
       <g id="chartGroup">
-        <g id="hazardLine" class="hazard">
-          <line y1="0" y2="0"></line>
-          <text y="-5">hazardous</text>
-        </g>
-        <g id="veryUnhealthyLine" class="hazard">
-          <line y1="0" y2="0"></line>
-          <text y="-5">very unhealthy</text>
-        </g>
-        <g id="unhealthyLine" class="hazard">
-          <line y1="0" y2="0"></line>
-          <text y="-5">unhealthy</text>
-        </g>
+        <g id="hazardGroup"></g>
       </g>
       <g id="axisGroup">
         <g id="xAxisGroup"></g>
@@ -64,7 +53,7 @@
     <div id="tip"></div>
     <div id="info" class="selected" onclick="infoSwitch()">&#9432;</div>
     <div id="infoPanel" onclick="infoSwitch()">
-      <p>This charts hourly air-quality data from the <a href='https://www.data.act.gov.au/Environment/Air-Quality-Monitoring-Data/94a5-zqnn' target='_blank'>ACT Government's three monitoring stations</a>. It measures fine particles (PM2.5) in the air, which are the most harmful to health.</p>
+      <p>This charts hourly air-quality data from the <a href='https://www.health.act.gov.au/about-our-health-system/population-health/environmental-monitoring/monitoring-and-regulating-air-7' target='_blank'>ACT Government's three monitoring stations</a>. It measures fine particles (PM2.5) in the air, which are the most harmful to health. The Government also provides <a href='https://www.health.act.gov.au/about-our-health-system/population-health/environmental-monitoring/monitoring-and-regulating-air-0#air-quality-table' target='_blank'>health advice about PM2.5 levels</a>.</p>
     </div>
     <script>
       // load data
@@ -82,7 +71,7 @@
           });
         // page elements
         margin = { top: 40, right: 20, bottom: 60, left: 40 };
-        sites = [
+        siteData = [
           ["Monash", "south Canberra"],
           ["Florey", "north Canberra"],
           ["Civic", "central Canberra"]
@@ -108,6 +97,24 @@
         selectedPeriod = 1;
         selectedSite = "all";
         lastDate = data[0].datetime;
+        // set up hazard lines
+        hazardData = [
+          ["hazardous", 177.9],
+          ["very unhealthy", 107],
+          ["unhealthy for all", 40]
+        ];
+        hazardGroup = d3.select("#hazardGroup");
+        hazards = hazardGroup
+          .selectAll(".hazard")
+            .data(hazardData)
+          .enter().append("g")
+            .classed("hazard", true)
+            .attr("id", function(d) { return d[0]; });
+        hazards.append("line")
+          .attr("x1", margin.left);
+        hazards.append("text")
+          .text(function(d) { return d[0]; })
+          .attr("y", -5);
         // set up scales, axes, voronoi
         x = d3.scaleTime();
         xAxis = d3.axisBottom(x)
@@ -122,15 +129,9 @@
           .x(function(d) { return x(d.datetime); })
           .y(function(d) { return y(d.pm2_5_1_hr); })
           .curve(d3.curveCardinal);
-        hazardLine = d3.select("#hazardLine");
-        veryUnhealthyLine = d3.select("#veryUnhealthyLine");
-        unhealthyLine = d3.select("#unhealthyLine");
-        hazards = d3.selectAll(".hazard");
-        hazards.select("line")
-          .attr("x1", margin.left);
         sites = chartGroup
           .selectAll(".site")
-            .data(sites, function(d) { return d[1]; })
+            .data(siteData, function(d) { return d[1]; })
           .enter().append("path")
             .attr("id", function(d) { return d[0]; })
             .classed("site", true)
@@ -194,15 +195,17 @@
         sites.transition()
           .duration(1500)
           .attr("d", function(d) { return line(airData.filter(function(e) { return d[0] == e.station; })); });
-        hazardLine.transition()
+        hazards.transition()
           .duration(1500)
-          .attr("transform", "translate(0, " + y(177.9) + ")");
-        veryUnhealthyLine.transition()
-          .duration(1500)
-          .attr("transform", "translate(0, " + y(107) + ")");
-        unhealthyLine.transition()
-          .duration(1500)
-          .attr("transform", "translate(0, " + y(40) + ")");
+          .attr("transform", function(d) { return "translate(0, " + y(d[1]) + ")"; });
+        hazards.selectAll("text, line")
+          .transition()
+            .duration(1500)
+            .style("opacity", function(d, i) {
+              return d[0] == "hazardous" ? 1 :
+                d[0] == "very unhealthy" ? (y(hazardData[1][1]) - y(hazardData[0][1]) < 20 ? 0 : 1) :
+                y(hazardData[2][1]) - y(hazardData[1][1]) < 20 ? 0 : 1;
+            });
         cells = chartGroup
           .selectAll(".cell")
             .data(voronoi.polygons(activeData.filter(function(d) { return d.datetime >= firstDate; })), function(d) { return d; });
