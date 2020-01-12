@@ -239,7 +239,7 @@
       }
       // click/touch period selector
       function changePeriod() {
-        options.classed("selected", false);
+        periodOptions.classed("selected", false);
         selectedPeriod = +d3.select(this).attr("value");
         d3.select(this).classed("selected", true);
         recalculate();
