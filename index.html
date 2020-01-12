@@ -32,9 +32,17 @@
         </clipPath>
       </defs>
       <g id="chartGroup">
-        <g id="hazardLine">
+        <g id="hazardLine" class="hazard">
           <line y1="0" y2="0"></line>
           <text y="-5">hazardous</text>
+        </g>
+        <g id="veryUnhealthyLine" class="hazard">
+          <line y1="0" y2="0"></line>
+          <text y="-5">very unhealthy</text>
+        </g>
+        <g id="unhealthyLine" class="hazard">
+          <line y1="0" y2="0"></line>
+          <text y="-5">unhealthy</text>
         </g>
       </g>
       <g id="axisGroup">
@@ -115,7 +123,10 @@
           .y(function(d) { return y(d.pm2_5_1_hr); })
           .curve(d3.curveCardinal);
         hazardLine = d3.select("#hazardLine");
-        hazardLine.select("line")
+        veryUnhealthyLine = d3.select("#veryUnhealthyLine");
+        unhealthyLine = d3.select("#unhealthyLine");
+        hazards = d3.selectAll(".hazard");
+        hazards.select("line")
           .attr("x1", margin.left);
         sites = chartGroup
           .selectAll(".site")
@@ -144,9 +155,9 @@
         xAxisGroup.attr("transform", "translate(0, " + (chartHeight - margin.bottom) + ")");
         x.range([margin.left, chartWidth - margin.right]);
         y.range([chartHeight - margin.bottom, margin.top]);
-        hazardLine.select("line")
+        hazards.select("line")
           .attr("x2", chartWidth - margin.right);
-        hazardLine.select("text")
+        hazards.select("text")
           .attr("x", chartWidth - margin.right);
         chartClip.select("rect")
           .attr("width", chartWidth - margin.left - margin.right)
@@ -186,6 +197,12 @@
         hazardLine.transition()
           .duration(1500)
           .attr("transform", "translate(0, " + y(177.9) + ")");
+        veryUnhealthyLine.transition()
+          .duration(1500)
+          .attr("transform", "translate(0, " + y(107) + ")");
+        unhealthyLine.transition()
+          .duration(1500)
+          .attr("transform", "translate(0, " + y(40) + ")");
         cells = chartGroup
           .selectAll(".cell")
             .data(voronoi.polygons(activeData.filter(function(d) { return d.datetime >= firstDate; })), function(d) { return d; });
