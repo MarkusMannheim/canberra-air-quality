@@ -75,6 +75,10 @@ h1, p {
   fill: #1C1C1C;
   font-size: .7rem;
 }
+#axisLabel {
+  text-anchor: middle;
+  font-family: "ABCSans Black", sans-serif;
+}
 #axisGroup line, #axisGroup .domain  {
   stroke: #1C1C1C;
   opacity: .75;
