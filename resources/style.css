@@ -33,26 +33,17 @@ h1, p {
   width: 100%;
   height: 100%;
 }
-#selector {
-  position: absolute;
-  display: flex;
-  bottom: 0;
-  right: 0;
-}
 #siteSelector {
   position: absolute;
   display: flex;
   top: 0;
   right: 0;
 }
-#selector .option {
-  font-family: "ABCSans Black", sans-serif;
-  color: white;
-  background-color: #1C1C1C;
-  padding: 5px;
-  width: 65px;
-  text-align: center;
-  margin-right: 2px;
+#periodSelector {
+  position: absolute;
+  display: flex;
+  bottom: 0;
+  right: 0;
 }
 #siteSelector .option {
   font-family: "ABCSans Black", sans-serif;
@@ -61,15 +52,22 @@ h1, p {
   width: 65px;
   text-align: center;
   margin-right: 2px;
+  background-color: silver;
 }
-#selector .option:last-child, #siteSelector .option:last-child {
+#periodSelector .option {
+  font-family: "ABCSans Black", sans-serif;
+  color: white;
+  background-color: #1C1C1C;
+  padding: 5px;
+  width: 65px;
+  text-align: center;
+  margin-right: 2px;
+}
+#periodSelector .option:last-child, #siteSelector .option:last-child {
   margin-right: 0px;
 }
-#selector .option.selected {
+#periodSelector .option.selected {
   background-color: #01CFFF;
-}
-#description {
-  position: absolute;
 }
 #axisGroup text {
   fill: #1C1C1C;
@@ -94,9 +92,6 @@ h1, p {
   stroke-width: 3;
   opacity: 1;
   stroke-dasharray: none;
-}
-#siteSelector .option {
-  background-color: silver;
 }
 #Florey.selected, .Florey {
   stroke: #00B395;
@@ -192,13 +187,16 @@ h1, p {
   text-decoration: none;
   color: #01CFFF;
 }
+#infoPanel p {
+  margin-top: .5rem;
+}
+#infoPanel p:first-child {
+  margin-top: 0;
+}
 /* desktop-only styling */
 @media only screen and (min-width: 500px) {
   body {
     background-color: #f9f9f9;
-  }
-  .reading {
-    stroke: white;
   }
   #info:hover::after {
     font-size: 1rem;

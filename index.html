@@ -11,7 +11,7 @@
     <!-- Initial scripts -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-    <link href="./resources/style.css?v1.5" rel="stylesheet">
+    <link href="./resources/style.css?v1.6" rel="stylesheet">
     <link href="./resources/abcLogo64.png" rel="icon">
     <!-- Page data for scrapers -->
     <meta property="og:title" content="Canberra's air quality">
@@ -27,81 +27,82 @@
     <!-- Initial page layout -->
     <svg id="chart">
       <defs>
-        <clipPath id="chartClip">
+        <clipPath id="chartClip"> <!-- hide lines outside chart -->
           <rect></rect>
         </clipPath>
       </defs>
-      <g id="chartGroup">
+      <g id="chartGroup"> <!-- contains chart elements -->
         <g id="hazardGroup"></g>
       </g>
-      <g id="axisGroup">
+      <g id="axisGroup"> <!-- contains axes -->
         <g id="xAxisGroup"></g>
         <g id="yAxisGroup">
           <text id="axisLabel">PM2.5 μg/m³</text>
         </g>
       </g>
     </svg>
-    <div id="description"></div>
-    <div id="selector">
-      <div class="option" value="28">MONTH</div>
-      <div class="option" value="7">WEEK</div>
-      <div class="option selected" value="1">DAY</div>
-    </div>
-    <div id="siteSelector">
+    <div id="siteSelector"> <!-- selector for station sites -->
       <div class="option all" value="Florey">NORTH</div>
       <div class="option all" value="Civic">CENTRAL</div>
       <div class="option all" value="Monash">SOUTH</div>
     </div>
-    <div id="tip"></div>
-    <div id="info" class="selected" onclick="infoSwitch()">&#9432;</div>
+    <div id="periodSelector"> <!-- selector for time period -->
+      <div class="option" value="28">MONTH</div>
+      <div class="option" value="7">WEEK</div>
+      <div class="option selected" value="1">DAY</div>
+    </div>
+    <div id="tip"></div> <!-- tool tip -->
+    <div id="info" class="selected" onclick="infoSwitch()">&#9432;</div> <!-- info panel -->
     <div id="infoPanel" onclick="infoSwitch()">
-      <p>This charts hourly air-quality data from the <a href='https://www.health.act.gov.au/about-our-health-system/population-health/environmental-monitoring/monitoring-and-regulating-air-7' target='_blank'>ACT Government's three monitoring stations</a>. It measures fine particles (PM2.5) in the air, which are the most harmful to health. The Government also provides <a href='https://www.health.act.gov.au/about-our-health-system/population-health/environmental-monitoring/monitoring-and-regulating-air-0#air-quality-table' target='_blank'>health advice about PM2.5 levels</a>.</p>
+      <p>This chart shows average hourly air-quality data from the ACT Government's <a href='https://www.health.act.gov.au/about-our-health-system/population-health/environmental-monitoring/monitoring-and-regulating-air-7' target='_blank'>three monitoring stations</a>. It measures fine particles (PM2.5) in the air, which are the most harmful to health.</p>
+      <p>The Government also provides <a href='https://www.health.act.gov.au/about-our-health-system/population-health/environmental-monitoring/monitoring-and-regulating-air-0#air-quality-table' target='_blank'>health advice</a> about PM2.5 levels.</p>
+      <p>Markus Mannheim created this chart <a href='https://www.abc.net.au/news/' target='_blank'>for the ABC</a> under a <a href='https://creativecommons.org/licenses/by-sa/3.0/au/' target='_blank'>CC BY-SA 3.0 AU</a> licence.</p>
     </div>
     <script>
-      // load data
+      // load air quality data
       d3.json("https://www.data.act.gov.au/resource/ufvu-jybu.json?$query=SELECT station,datetime,pm2_5_1_hr ORDER BY datetime DESC LIMIT 2016", function(error, data) {
         if (error) throw error;
-        backupData = data;
         airData = data
           .filter(function(d) {
-            return d.datetime && d.pm2_5_1_hr;
+            return d.datetime && d.pm2_5_1_hr; // remove junk data
           })
-          .map(function(d) {
+          .map(function(d) { // reformat data
             d.datetime = d3.timeParse("%Y-%m-%dT%H:%M:%S.%L")(d.datetime);
+            d.datetime.setHours(d.datetime.getHours() + 1); // convert to Canberra summer time
             d.pm2_5_1_hr = +d.pm2_5_1_hr;
             return d;
           });
+        lastDate = data[0].datetime; // lastDate used in calculating time periods
+        margin = { top: 40, right: 20, bottom: 60, left: 40 }; // chart margins
         // page elements
-        margin = { top: 40, right: 20, bottom: 60, left: 40 };
-        siteData = [
-          ["Monash", "south Canberra"],
-          ["Florey", "north Canberra"],
-          ["Civic", "central Canberra"]
-        ];
-        base = d3.select("#base");
         chart = d3.select("#chart");
+        chartGroup = d3.select("#chartGroup");
+        infoToggle = false;
         info = d3.select("#info");
         infoPanel = d3.select("#infoPanel");
-        infoToggle = false;
-        chartGroup = d3.select("#chartGroup");
+        tip = d3.select("#tip");
         chartClip = d3.select("#chartClip");
-        chartClip.select("rect")
+        chartClip.select("rect") // hide elements outside margins
           .attr("x", margin.left)
           .attr("y", margin.top - 5);
-        tip = d3.select("#tip");
         xAxisGroup = d3.select("#xAxisGroup");
         yAxisGroup = d3.select("#yAxisGroup")
           .attr("transform", "translate(" + margin.left + ", 0)");
         axisLabel = d3.select("#axisLabel")
           .attr("y", margin.top - 15)
           .style("font-size", ".8rem");
-        options = d3.selectAll("#selector .option")
-          .on("click", changeSelector);
+        periodOptions = d3.selectAll("#periodSelector .option")
+          .on("click", changePeriod); // add click event
+        selectedPeriod = 1; // default period is 'day'
+        // set up site selector
+        siteData = [
+          ["Monash", "south Canberra"],
+          ["Florey", "north Canberra"],
+          ["Civic", "central Canberra"]
+        ];
         siteOptions = d3.selectAll("#siteSelector .option")
           .on("click", changeSite);
-        selectedPeriod = 1;
-        selectedSite = "all";
-        lastDate = data[0].datetime;
+        selectedSite = "all"; // default site is 'all'
         // set up hazard lines
         hazardData = [
           ["hazardous", 177.9],
@@ -120,7 +121,7 @@
         hazards.append("text")
           .text(function(d) { return d[0]; })
           .attr("y", -5);
-        // set up scales, axes, voronoi
+        // set up scales & axes
         x = d3.scaleTime();
         xAxis = d3.axisBottom(x)
           .tickSizeOuter(0)
@@ -134,75 +135,71 @@
           .x(function(d) { return x(d.datetime); })
           .y(function(d) { return y(d.pm2_5_1_hr); })
           .curve(d3.curveCardinal);
-        sites = chartGroup
+        siteLines = chartGroup
           .selectAll(".site")
             .data(siteData, function(d) { return d[1]; })
           .enter().append("path")
             .attr("id", function(d) { return d[0]; })
             .classed("site", true)
             .classed("selected", true);
-        // set up voronoi cells
+        // voronoi cells make it simpler to hover/touch, to access tooltip
         voronoi = d3.voronoi()
           .x(function(d) { return x(d.datetime); })
           .y(function(d) { return y(d.pm2_5_1_hr); });
-        // window resize event
-        window.addEventListener("resize", resize);
-        resize();
-        // initial fade-in and zoom
-        d3.select("body").transition()
+        window.addEventListener("resize", resize); // resize event for transformations when the browser changes
+        resize(); // initial event to calculate dependent values
+        d3.select("body").transition() // initial chart fade-in
           .duration(1500)
           .style("opacity", 1);
       });
-      // re-plot when window resizes
+      // recalculate values when window resizes
       function resize() {
         let dimensions = document.getElementById("chart").getBoundingClientRect();
         chartWidth = dimensions.width;
         chartHeight = dimensions.height;
-        xAxisGroup.attr("transform", "translate(0, " + (chartHeight - margin.bottom) + ")");
+        xAxisGroup.attr("transform", "translate(0, " + (chartHeight - margin.bottom) + ")"); // move x-axis into place
+        // set scale ranges
         x.range([margin.left, chartWidth - margin.right]);
         y.range([chartHeight - margin.bottom, margin.top]);
-        hazards.select("line")
+        hazards.select("line") // set hazard line widths
           .attr("x2", chartWidth - margin.right);
-        hazards.select("text")
+        hazards.select("text") // set hazard label positions
           .attr("x", chartWidth - margin.right);
-        chartClip.select("rect")
+        chartClip.select("rect") // resize chart clip-path
           .attr("width", chartWidth - margin.left - margin.right)
           .attr("height", chartHeight - margin.top - margin.bottom + 5);
-        voronoi.size([chartWidth, chartHeight]);
-        recalculate();
-      }
-      // click/touch selector
-      function changeSelector() {
-        options.classed("selected", false);
-        selectedPeriod = +d3.select(this).attr("value");
-        d3.select(this).classed("selected", true);
+        voronoi.size([chartWidth, chartHeight]); // re-set extent of voronoi canvas
         recalculate();
       }
       // calculate scales & axes
       function recalculate() {
-        firstDate = new Date(new Date(lastDate).setDate(lastDate.getDate() - selectedPeriod));
+        firstDate = new Date(new Date(lastDate).setDate(lastDate.getDate() - selectedPeriod)); // first date to be charted
         activeData = airData
           .filter(function(d) {
-            return d.station == selectedSite || selectedSite == "all";
+            return d.station == selectedSite || selectedSite == "all"; // filter out unselected sites
           });
+        // set which data are used for scales & voronoi canvas
         x.domain(d3.extent(activeData.filter(function(d) { return d.datetime >= firstDate; }), function(d) { return d.datetime; }));
         y.domain([0, d3.max(activeData.filter(function(d) { return d.datetime >= firstDate; }), function(d) { return d.pm2_5_1_hr; })]).nice();
         draw();
       }
-      // draw axes & pollution lines
+      // draw axes, pollution lines & voronoi cells
       function draw() {
+        // shift axes to new scales
         xAxisGroup.transition()
           .duration(1500)
           .call(xAxis);
         yAxisGroup.transition()
           .duration(1500)
           .call(yAxis);
-        sites.transition()
+        siteLines.transition() // redraw pollution lines
           .duration(1500)
           .attr("d", function(d) { return line(airData.filter(function(e) { return d[0] == e.station; })); });
+        // redraw hazard lines
         hazards.transition()
           .duration(1500)
           .attr("transform", function(d) { return "translate(0, " + y(d[1]) + ")"; });
+        // hide 2nd & 3rd hazard lines if they're too close to each other
         hazards.selectAll("text, line")
           .transition()
             .duration(1500)
@@ -211,6 +208,7 @@
                 d[0] == "very unhealthy" ? (y(hazardData[1][1]) - y(hazardData[0][1]) < 20 ? 0 : 1) :
                 y(hazardData[2][1]) - y(hazardData[1][1]) < 20 ? 0 : 1;
             });
+        // redraw invisible voronoi cells
         cells = chartGroup
           .selectAll(".cell")
             .data(voronoi.polygons(activeData.filter(function(d) { return d.datetime >= firstDate; })), function(d) { return d; });
@@ -232,29 +230,59 @@
         cells.select("circle")
           .attr("cx", function(d) { return !d ? null : x(d.data.datetime); })
           .attr("cy", function(d) { return !d ? null : y(d.data.pm2_5_1_hr); });
+        // switch off mouse/touch interactions while chart transitions
         d3.selectAll(".cell")
           .style("pointer-events", "none")
           .transition()
             .delay(1500)
             .style("pointer-events", "auto");
       }
-      // reveal & hide readings
-      function hide(d) {
+      // click/touch period selector
+      function changePeriod() {
+        options.classed("selected", false);
+        selectedPeriod = +d3.select(this).attr("value");
+        d3.select(this).classed("selected", true);
+        recalculate();
+      }
+      // change site selection
+      function changeSite() {
+        if (selectedSite !== "all" && selectedSite == d3.select(this).attr("value")) {
+          selectedSite = "all";
+          siteOptions.classed("selected", false);
+          siteLines.classed("selected", true);
+          siteOptions.classed("all", true);
+        } else {
+          selectedSite = d3.select(this)
+            .attr("value");
+          siteOptions.classed("all", false);
+          siteOptions.classed("selected", false);
+          siteLines.classed("selected", false);
+          d3.select(this).classed("selected", true);
+          siteLines.filter(function(d) { return d[0] == selectedSite; })
+            .classed("selected", true)
+            .raise();
+        }
+        recalculate();
+      }
+      // hide tool tip when hover out
+      function hide() {
         d3.select(this)
           .select("circle")
           .classed("selected", false);
         tip.style("opacity", 0);
       }
+      // reveal tool tip when hover over
       function reveal(d) {
         d3.select(this)
           .select("circle")
           .classed("selected", true);
         tip.style("opacity", 0)
-          .attr("class", d.data.station)
-          .style("top", "0px")
+          .attr("class", d.data.station) // set colour of tool tip to match site
+          .style("top", "0px") // reset position to tool tip for correct sizing
           .style("left", "0px")
-          .html("<h1>" + d3.format(".1f")(d.data.pm2_5_1_hr) + "</h1>"
+          .html("<h1>" + d3.format(".1f")(d.data.pm2_5_1_hr) + "</h1>" // re-write tool tip content
               + "<p>" + d.data.station + ", " + d3.timeFormat("%-I%p, %b %-d")(d.data.datetime) + "</p>");
+        // set location of tool tip to ensure it's always inside chart
         let tipWidth = parseFloat(tip.style("width"));
         let tipHeight = parseFloat(tip.style("height"));
         tip.style("top", function() {
@@ -268,27 +296,6 @@
               (x(d.data.datetime) - 10 - tipWidth) + "px";
           })
           .style("opacity", 1);
-      }
-      // change site selection
-      function changeSite() {
-        console.log(d3.select(this).attr("value") + " " + selectedSite);
-        if (selectedSite !== "all" && selectedSite == d3.select(this).attr("value")) {
-          selectedSite = "all";
-          siteOptions.classed("selected", false);
-          sites.classed("selected", true);
-          siteOptions.classed("all", true);
-        } else {
-          selectedSite = d3.select(this)
-            .attr("value");
-          siteOptions.classed("all", false);
-          siteOptions.classed("selected", false);
-          sites.classed("selected", false);
-          d3.select(this).classed("selected", true);
-          sites.filter(function(d) { return d[0] == selectedSite; })
-            .classed("selected", true)
-            .raise();
-        }
-        recalculate();
       }
       // info panel
       function infoSwitch() {
