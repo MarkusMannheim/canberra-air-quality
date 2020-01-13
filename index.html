@@ -2,18 +2,27 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156101940-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-156101940-1');
+    </script>
+    <!-- my stuff -->
     <meta charset="utf-8">
     <title>Canberra's air quality</title>
     <meta name="description" content="Real-time visualisation of fine particulate pollution (PM2.5).">
     <meta name="keywords" content="canberra, act, air, quality, aqi, pollution, pm25, smoke, bushfires">
     <meta name="author" content="Markus Mannheim">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Initial scripts -->
+    <!-- initial scripts -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-    <link href="./resources/style.css?v1.7" rel="stylesheet">
+    <link href="./resources/style.css?v1.8" rel="stylesheet">
     <link href="./resources/abcLogo64.png" rel="icon">
-    <!-- Page data for scrapers -->
+    <!-- page data for scrapers -->
     <meta property="og:title" content="Canberra's air quality">
     <meta property="og:description" content="Real-time visualisation of fine particulate pollution (PM2.5).">
     <meta property="og:image" content="https://markusmannheim.github.io/canberra-air-quality/resources/parlySmoke.jpg">
@@ -24,7 +33,7 @@
     <meta property="twitter:creator" content="@MarkusMannheim">
   </head>
   <body>
-    <!-- Initial page layout -->
+    <!-- initial page layout -->
     <svg id="chart">
       <defs>
         <clipPath id="chartClip"> <!-- hide lines outside chart -->
@@ -54,8 +63,7 @@
     <div id="tip"></div> <!-- tool tip -->
     <div id="info" class="selected" onclick="infoSwitch()">&#9432;</div> <!-- info panel -->
     <div id="infoPanel" onclick="infoSwitch()">
-      <p>This chart shows average hourly air-quality data from the ACT Government's <a href='https://www.health.act.gov.au/about-our-health-system/population-health/environmental-monitoring/monitoring-and-regulating-air-7' target='_blank'>three monitoring stations</a>. It measures fine particles (PM2.5) in the air, which are the most harmful to health.</p>
-      <p>The Government also provides <a href='https://www.health.act.gov.au/about-our-health-system/population-health/environmental-monitoring/monitoring-and-regulating-air-0#air-quality-table' target='_blank'>health advice</a> about PM2.5 levels.</p>
+      <p>This chart shows average hourly air-quality data from the ACT Government's three <a href='https://www.health.act.gov.au/about-our-health-system/population-health/environmental-monitoring/monitoring-and-regulating-air-7' target='_blank'>monitoring stations</a>. It measures fine particles (PM2.5) in the air, which are the most harmful to health. The Government also provides <a href='https://www.health.act.gov.au/about-our-health-system/population-health/environmental-monitoring/monitoring-and-regulating-air-0#air-quality-table' target='_blank'>health advice</a> about PM2.5 levels.</p>
       <p>Markus Mannheim created this chart <a href='https://www.abc.net.au/news/' target='_blank'>for the ABC</a> under a <a href='https://creativecommons.org/licenses/by-sa/3.0/au/' target='_blank'>CC BY-SA 3.0 AU</a> licence.</p>
     </div>
     <script>
