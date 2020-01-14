@@ -1,3 +1,5 @@
+![Chart](./resources/screenShot.png "Canberra air quality chart")
+
 # Canberra's air quality
 
 [This chart](https://markusmannheim.github.io/canberra-air-quality/) shows average hourly air-quality data from the ACT Government's [three monitoring stations](https://www.health.act.gov.au/about-our-health-system/population-health/environmental-monitoring/monitoring-and-regulating-air-7). It measures fine particles (PM2.5) in the air, which are the most harmful to health.
