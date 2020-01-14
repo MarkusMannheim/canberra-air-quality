@@ -67,7 +67,7 @@ h1, p {
   margin-right: 0px;
 }
 #periodSelector .option.selected {
-  background-color: #01CFFF;
+  background-color: #009CBF;
 }
 #axisGroup text {
   fill: #1C1C1C;
@@ -94,22 +94,22 @@ h1, p {
   stroke-dasharray: none;
 }
 #Florey.selected, .Florey {
-  stroke: #00B395;
+  stroke: #00A388;
 }
 #siteSelector .option[value=Florey].selected, #siteSelector .option[value=Florey].all {
-  background-color: #00B395;
+  background-color: #00A388;
 }
 #Monash.selected, .Monash {
-  stroke: #FF6100;
+  stroke: #F75F00;
 }
 #siteSelector .option[value=Monash].selected, #siteSelector .option[value=Monash].all {
-  background-color: #FF6100;
+  background-color: #F75F00;
 }
 #Civic.selected, .Civic {
-  stroke: #01CFFF;
+  stroke: #009CBF;
 }
 #siteSelector .option[value=Civic].selected, #siteSelector .option[value=Civic].all {
-  background-color: #01CFFF;
+  background-color: #009CBF;
 }
 .hazard {
   opacity: .75;
@@ -153,10 +153,10 @@ h1, p {
   color: #00826A;
 }
 #tip.Monash {
-  color: #C44B00;
+  color: #F75F00;
 }
 #tip.Civic {
-  color: #007D99;
+  color: #009CBF;
 }
 #info {
   position: fixed;
