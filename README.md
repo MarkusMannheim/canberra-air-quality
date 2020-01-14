@@ -1,4 +1,4 @@
-![Chart](./resources/screenShot.png "Canberra air quality chart")
+[![Chart](./resources/screenShot.png "Canberra air quality chart")](https://markusmannheim.github.io/canberra-air-quality/)
 
 # Canberra's air quality
 
