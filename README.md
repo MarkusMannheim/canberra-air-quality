@@ -4,5 +4,5 @@
 
 The Government also provides [health advice](https://www.health.act.gov.au/about-our-health-system/population-health/environmental-monitoring/monitoring-and-regulating-air-0#air-quality-table) about PM2.5 levels. I recommend reading it before making assumptions about what the numbers in this chart mean.
 
-## Licence
+### Licence
 I made this web page for [ABC News](https://www.abc.net.au/news/) under a [CC BY-SA 3.0 AU](https://creativecommons.org/licenses/by-sa/3.0/au/) licence. Feel free to share, embed, copy or adapt it, but read the licence conditions first.
