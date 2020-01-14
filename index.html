@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
   <head>
@@ -116,7 +115,8 @@
         hazardData = [
           ["hazardous", 177.9],
           ["very unhealthy", 107],
-          ["unhealthy for all", 40]
+          ["unhealthy for all", 40],
+          ["unhealthy for sensitive groups", 26]
         ];
         hazardGroup = d3.select("#hazardGroup");
         hazards = hazardGroup
@@ -208,14 +208,15 @@
         hazards.transition()
           .duration(1500)
           .attr("transform", function(d) { return "translate(0, " + y(d[1]) + ")"; });
-        // hide 2nd & 3rd hazard lines if they're too close to each other
+        // hide hazard lines if they're too close to each other
         hazards.selectAll("text, line")
           .transition()
             .duration(1500)
             .style("opacity", function(d, i) {
               return d[0] == "hazardous" ? 1 :
                 d[0] == "very unhealthy" ? (y(hazardData[1][1]) - y(hazardData[0][1]) < 20 ? 0 : 1) :
-                y(hazardData[2][1]) - y(hazardData[1][1]) < 20 ? 0 : 1;
+                d[0] == "unhealthy for all" ? (y(hazardData[2][1]) - y(hazardData[1][1]) < 20 ? 0 : 1) :
+                y(hazardData[3][1]) - y(hazardData[2][1]) < 20 ? 0 : 1;
             });
         // redraw invisible voronoi cells
         cells = chartGroup
