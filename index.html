@@ -116,7 +116,8 @@
           ["hazardous", 177.9],
           ["very unhealthy", 107],
           ["unhealthy for all", 40],
-          ["unhealthy for sensitive groups", 26]
+          ["unhealthy for sensitive groups", 26],
+          ["good", 9]
         ];
         hazardGroup = d3.select("#hazardGroup");
         hazards = hazardGroup
@@ -216,7 +217,8 @@
               return d[0] == "hazardous" ? 1 :
                 d[0] == "very unhealthy" ? (y(hazardData[1][1]) - y(hazardData[0][1]) < 20 ? 0 : 1) :
                 d[0] == "unhealthy for all" ? (y(hazardData[2][1]) - y(hazardData[1][1]) < 20 ? 0 : 1) :
-                y(hazardData[3][1]) - y(hazardData[2][1]) < 20 ? 0 : 1;
+                d[0] == "unhealthy for sensitive groups" ? (y(hazardData[3][1]) - y(hazardData[2][1]) < 20 ? 0 : 1) :
+                y(hazardData[4][1]) - y(hazardData[3][1]) < 20 ? 0 : 1;
             });
         // redraw invisible voronoi cells
         cells = chartGroup
