@@ -16,8 +16,8 @@
   font-family: "ABCSans Regular", "Arial Regular", sans-serif;
 }
 body {
-  margin: 0;
-  padding: 0;
+  margin: 0px;
+  padding: 0x;
   opacity: 0;
 }
 h1, p {
@@ -36,14 +36,14 @@ h1, p {
 #siteSelector {
   position: absolute;
   display: flex;
-  top: 0;
-  right: 0;
+  top: 10px;
+  right: 10px;
 }
 #periodSelector {
   position: absolute;
   display: flex;
-  bottom: 0;
-  right: 0;
+  bottom: 10px;
+  right: 10px;
 }
 #siteSelector .option {
   font-family: "ABCSans Black", sans-serif;
@@ -80,6 +80,9 @@ h1, p {
 #axisGroup line, #axisGroup .domain  {
   stroke: #1C1C1C;
   opacity: .75;
+}
+#hazardGroup {
+  clip-path: url(#chartClip);
 }
 .site {
   fill: none;
@@ -160,7 +163,8 @@ h1, p {
 }
 #info {
   position: fixed;
-  bottom: 0px;
+  bottom: 10px;
+  left: 10px;
   color: #1C1C1C;
   font-size: 1.5rem;
   padding: 5px 10px 0 0;
