@@ -20,7 +20,7 @@
     <!-- initial scripts -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-    <link href="./resources/style.css?v1.10" rel="stylesheet">
+    <link href="./resources/style.css?v1.11" rel="stylesheet">
     <link href="./resources/abcLogo64.png" rel="icon">
     <!-- page data for scrapers -->
     <meta property="og:title" content="Canberra's air quality">
@@ -81,7 +81,7 @@
             return d;
           });
         lastDate = data[0].datetime; // lastDate used in calculating time periods
-        margin = { top: 40, right: 20, bottom: 60, left: 40 }; // chart margins
+        margin = { top: 50, right: 30, bottom: 70, left: 50 }; // chart margins
         // page elements
         chart = d3.select("#chart");
         chartGroup = d3.select("#chartGroup");
